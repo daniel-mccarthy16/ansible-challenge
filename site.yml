@@ -1,1 +1,7 @@
 ---
+- name: Test connectivity to instances
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Ping the instances
+      ping:

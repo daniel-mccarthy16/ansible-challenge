@@ -1,0 +1,68 @@
+# Ignore Python environment directories
+pythonenv/
+venv/
+env/
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore temporary files
+*.swp
+*.tmp
+*.log
+*.pid
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.iml
+
+# Ignore compiled Python files
+__pycache__/
+*.py[cod]
+
+# Ignore Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Ignore coverage reports
+htmlcov/
+.coverage
+.tox/
+
+# Ignore Python test logs
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Ignore virtual environment created by pipenv
+Pipfile.lock
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore local configuration files
+*.local
+*.env
+
+# Ignore Terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Ignore AWS credentials
+.aws/credentials
+.aws/config
+
+# Ignore temporary files created by text editors
+*~
+*.bak
+*.swp
+*.swo
+*.swn
