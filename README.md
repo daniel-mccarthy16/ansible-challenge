@@ -35,4 +35,9 @@ Run the `setup-keys-and-cert.sh` script to set up your environment. This script 
 **Note:** For possible improvements, consider relying entirely on the CDK for the creation of these resources.
 
 
-5. 
+5. **TODO: Leverage Dynamic Inventory and Configure Machines**
+
+   To leverage the dynamic inventory and configure machines, run the following command:
+
+   ```sh
+   ansible-playbook -i inventory/muhinventory.py site.yml
