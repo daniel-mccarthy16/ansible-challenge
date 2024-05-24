@@ -29,14 +29,6 @@ export class AwsInfrastructureStack extends cdk.Stack {
       ]
     });
 
-    const ec2SecurityGroup = new ec2.SecurityGroup(this, 'EC2SecurityGroup', {
-      vpc,
-      description: 'Allow HTTP/HTTPS traffic from ALB',
-      allowAllOutbound: true,
-    });
-    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'allow HTTP traffic from ALB');
-    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'allow HTTPS traffic from ALB');
-
     const albSecurityGroup = new ec2.SecurityGroup(this, 'ALBSecurityGroup', {
       vpc,
       description: 'Allow HTTPS traffic from world',
@@ -44,12 +36,13 @@ export class AwsInfrastructureStack extends cdk.Stack {
     });
     albSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'allow HTTPS traffic');
 
-    const eniSecurityGroup = new ec2.SecurityGroup(this, 'ENISecurityGroup', {
+    const ec2SecurityGroup = new ec2.SecurityGroup(this, 'EC2SecurityGroup', {
       vpc,
-      description: 'Allow SSH traffic from world',
+      description: 'Allow HTTP traffic from ALB and SSH from anywhere',
       allowAllOutbound: true,
     });
-    eniSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'allow SSH access');
+    ec2SecurityGroup.addIngressRule(albSecurityGroup, ec2.Port.tcp(80), 'allow HTTP traffic from ALB');
+    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'allow SSH access');
 
     const instanceType = ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO);
     const machineImage = ec2.MachineImage.latestAmazonLinux2();
@@ -62,7 +55,6 @@ export class AwsInfrastructureStack extends cdk.Stack {
       keyName: keyPairName,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
-    ec2Instance1.addSecurityGroup(eniSecurityGroup);
     cdk.Tags.of(ec2Instance1).add('Name', 'ansible_vm1');
 
     const eip1 = new ec2.CfnEIP(this, 'EIP1', {
@@ -77,7 +69,6 @@ export class AwsInfrastructureStack extends cdk.Stack {
       keyName: keyPairName,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
-    ec2Instance2.addSecurityGroup(eniSecurityGroup);
     cdk.Tags.of(ec2Instance2).add('Name', 'ansible_vm2');
 
     const eip2 = new ec2.CfnEIP(this, 'EIP2', {
@@ -121,9 +112,11 @@ export class AwsInfrastructureStack extends cdk.Stack {
         targetGroups: [targetGroup],
       });
 
-      // Output the instance public IPs
-      new cdk.CfnOutput(this, 'Instance1PublicIP', { value: ec2Instance1.instancePublicIp });
-      new cdk.CfnOutput(this, 'Instance2PublicIP', { value: ec2Instance2.instancePublicIp });
+      new cdk.CfnOutput(this, 'ALBDNSName', {
+        value: alb.loadBalancerDnsName,
+        description: 'The DNS name of the ALB',
+      });
+
     }).catch(err => {
       console.error('Error retrieving ACM ARN from Secrets Manager:', err);
       throw new Error('Error retrieving ACM ARN from Secrets Manager');

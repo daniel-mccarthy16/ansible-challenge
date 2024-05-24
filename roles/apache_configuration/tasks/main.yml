@@ -1,13 +1,68 @@
 ---
-- name: Update YUM package list
+- name: Install Apache
   yum:
-    name: '*'
-    state: latest
+    name: httpd
+    state: present
 
-- name: Upgrade all YUM packages
-  yum:
-    name: '*'
-    state: latest
+- name: Ensure Apache is enabled and started
+  service:
+    name: httpd
+    state: started
+    enabled: yes
 
-- name: Ensure YUM mirrors are up-to-date
-  shell: yum clean all && yum makecache
+- name: Copy the HTML file to the web root
+  copy:
+    src: ./Base64toTXT.html
+    dest: /var/www/html/index.html
+    owner: apache
+    group: apache
+    mode: '0644'
+
+- name: Configure Apache to disallow directory listing
+  blockinfile:
+    path: /etc/httpd/conf/httpd.conf
+    block: |
+      <Directory "/var/www/html">
+          Options -Indexes
+          AllowOverride None
+          Require all granted
+      </Directory>
+  notify: restart apache
+
+- name: Ensure server tokens are minimized
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerTokens'
+    line: 'ServerTokens Prod'
+    state: present
+  notify: restart apache
+
+- name: Ensure server signature is off
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerSignature'
+    line: 'ServerSignature Off'
+    state: present
+  notify: restart apache
+
+- name: Disable TRACE method
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^TraceEnable'
+    line: 'TraceEnable off'
+    state: present
+  notify: restart apache
+
+- name: Disable ETag headers
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^FileETag'
+    line: 'FileETag None'
+    state: present
+  notify: restart apache
+
+- name: Ensure Apache service is enabled and started
+  service:
+    name: httpd
+    state: started
+    enabled: yes
