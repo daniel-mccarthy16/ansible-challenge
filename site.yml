@@ -1,7 +1,30 @@
 ---
-- name: Test connectivity to instances
+- name: Apply common configuration and hardening
   hosts: all
-  gather_facts: no
-  tasks:
-    - name: Ping the instances
-      ping:
+  become: yes
+  gather_facts: no  # Disable default fact gathering
+
+  pre_tasks:
+      - name: Start SSH agent
+        command: eval $(ssh-agent -s)
+        register: ssh_agent_output
+        changed_when: false
+
+      - name: Add private key to agent
+        shell: echo {{ ansible_ssh_private_key_content }} | base64 --decode | ssh-add -
+        environment:
+          SSH_AUTH_SOCK: "{{ ssh_agent_output.stdout_lines[0].split('=')[1].split(';')[0] }}"
+
+      - name: Print inventory hostname
+        debug:
+          msg: "Connecting to {{ inventory_hostname }}"
+
+      - name: Print SSH private key content
+        debug:
+          msg: "Using SSH private key content"
+
+  roles:
+    - role: system_update
+    - role: chrony_configuration
+    # - role: apache_configuration
+    # - role: ssh_hardening

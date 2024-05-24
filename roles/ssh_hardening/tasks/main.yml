@@ -1,0 +1,10 @@
+---
+- name: Ensure YUM mirrors are up-to-date
+  shell: yum clean all && yum makecache
+  become: yes
+
+- name: Upgrade all YUM packages
+  yum:
+    name: '*'
+    state: latest
+  become: yes

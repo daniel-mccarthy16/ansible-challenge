@@ -1,0 +1,17 @@
+---
+- name: Install Chrony
+  yum:
+    name: chrony
+    state: present
+
+- name: Configure Chrony
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  notify: restart chrony
+
+- name: Enable and start Chrony service
+  service:
+    name: chronyd
+    state: started
+    enabled: yes
